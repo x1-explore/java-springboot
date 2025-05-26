@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>个人信息 - 系统管理平台</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .profile-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-avatar-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .avatar-actions {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .profile-avatar-container:hover .avatar-actions {
+            opacity: 1;
+        }
+
+        .avatar-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-btn:hover {
+            background: #007bff;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .profile-info {
+            margin-bottom: 2rem;
+        }
+
+        .info-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            color: #333;
+        }
+
+        .info-input {
+            display: none;
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .profile-actions {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+        }
+
+        .action-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .edit-btn {
+            background: #007bff;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .save-btn {
+            display: none;
+            background: #28a745;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .cancel-btn {
+            display: none;
+            background: #dc3545;
+            color: white;
+            margin-left: 1rem;
+        }
+
+        .cancel-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .navbar {
+            background: white !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .navbar-brand {
+            color: #007bff !important;
+            font-weight: bold;
+        }
+
+        .nav-link {
+            color: #333 !important;
+        }
+
+        .nav-link:hover {
+            color: #007bff !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-shield-alt me-2"></i>系统管理平台
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/navigation">
+                            <i class="fas fa-compass me-1"></i>导航
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-primary" href="/dashboard">
+                            <i class="fas fa-home me-1"></i>返回主页
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 个人信息内容 -->
+    <div class="container">
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-avatar-container">
+                    <img th:src="${user.avatar}" alt="用户头像" class="profile-avatar" id="avatarPreview">
+                    <div class="avatar-actions">
+                        <button class="avatar-btn" onclick="document.getElementById('avatarUpload').click()" title="上传头像">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                        <button class="avatar-btn" onclick="generateNewAvatar()" title="生成新头像">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <h2 th:text="${user.username}" class="mb-2">用户名</h2>
+                <p class="text-muted" th:text="${user.email}">邮箱地址</p>
+            </div>
+
+            <div class="profile-info">
+                <div class="info-group">
+                    <div class="info-label">用户名</div>
+                    <div class="info-value" th:text="${user.username}"></div>
+                    <input type="text" class="info-input" th:value="${user.username}" disabled>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">邮箱地址</div>
+                    <div class="info-value" th:text="${user.email}"></div>
+                    <input type="email" class="info-input" th:value="${user.email}">
+                </div>
+                <div class="info-group">
+                    <div class="info-label">密码</div>
+                    <div class="info-value">••••••••</div>
+                    <div class="password-inputs" style="display: none;">
+                        <input type="password" class="info-input mb-2" id="newPassword" placeholder="输入新密码">
+                        <input type="password" class="info-input" id="confirmPassword" placeholder="确认新密码">
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <button class="action-btn edit-btn" onclick="toggleEditMode()">
+                    <i class="fas fa-edit me-2"></i>修改个人信息
+                </button>
+                <button class="action-btn save-btn" onclick="saveProfile()">
+                    <i class="fas fa-check me-2"></i>保存修改
+                </button>
+                <button class="action-btn cancel-btn" onclick="cancelEdit()">
+                    <i class="fas fa-times me-2"></i>取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件上传输入框 -->
+    <input type="file" id="avatarUpload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+
+    <!-- JavaScript -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let isEditMode = false;
+
+        function toggleEditMode() {
+            isEditMode = true;
+            document.querySelectorAll('.info-value').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.info-input, .password-inputs').forEach(el => el.style.display = 'block');
+            document.querySelector('.edit-btn').style.display = 'none';
+            document.querySelector('.save-btn').style.display = 'inline-block';
+            document.querySelector('.cancel-btn').style.display = 'inline-block';
+        }
+
+        function cancelEdit() {
+            isEditMode = false;
+            document.querySelectorAll('.info-value').forEach(el => el.style.display = 'block');
+            document.querySelectorAll('.info-input, .password-inputs').forEach(el => el.style.display = 'none');
+            document.querySelector('.edit-btn').style.display = 'inline-block';
+            document.querySelector('.save-btn').style.display = 'none';
+            document.querySelector('.cancel-btn').style.display = 'none';
+            // 重置输入值
+            document.querySelectorAll('.info-input').forEach(input => {
+                const value = input.previousElementSibling?.textContent;
+                input.value = value === '••••••••' ? '' : value || '';
+            });
+        }
+
+        async function saveProfile() {
+            const emailInput = document.querySelector('input[type="email"]');
+            const newPasswordInput = document.getElementById('newPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            
+            // 密码验证
+            if (newPasswordInput.value || confirmPasswordInput.value) {
+                if (newPasswordInput.value !== confirmPasswordInput.value) {
+                    showNotification('两次输入的密码不一致', 'error');
+                    return;
+                }
+                if (newPasswordInput.value.length < 6) {
+                    showNotification('密码长度不能少于6位', 'error');
+                    return;
+                }
+            }
+
+            const data = {
+                email: emailInput.value,
+                password: newPasswordInput.value || null
+            };
+
+            try {
+                const response = await fetch('/profile/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showNotification('个人信息更新成功', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    const error = await response.text();
+                    showNotification(error || '更新失败，请重试', 'error');
+                }
+            } catch (error) {
+                showNotification('发生错误，请重试', 'error');
+            }
+        }
+
+        async function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            try {
+                const response = await fetch('/profile/upload-avatar', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('avatarPreview').src = result.avatarUrl;
+                    showNotification('头像上传成功', 'success');
+                } else {
+                    showNotification('头像上传失败，请重试', 'error');
+                }
+            } catch (error) {
+                showNotification('发生错误，请重试', 'error');
+            }
+        }
+
+        async function generateNewAvatar() {
+            try {
+                const username = document.querySelector('h2').textContent;
+                // 生成随机种子确保每次生成不同的头像
+                const seed = Date.now().toString();
+                // 可选的样式：marble, beam, pixel, sunset, ring, bauhaus
+                const styles = ['marble', 'beam', 'pixel', 'sunset', 'ring', 'bauhaus'];
+                const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+                
+                // 使用 Boring Avatars API 生成头像
+                const avatarUrl = `https://source.boringavatars.com/${randomStyle}/120/${encodeURIComponent(username + seed)}?colors=264653,2a9d8f,e9c46a,f4a261,e76f51`;
+
+                const response = await fetch('/profile/update-avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ avatarUrl })
+                });
+
+                if (response.ok) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    avatarPreview.src = avatarUrl;
+                    avatarPreview.style.backgroundColor = 'transparent';
+                    showNotification('新头像生成成功', 'success');
+                } else {
+                    showNotification('头像生成失败，请重试', 'error');
+                }
+            } catch (error) {
+                showNotification('发生错误，请重试', 'error');
+            }
+        }
+
+        function showNotification(message, type) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} notification`;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            notification.style.padding = '1rem 2rem';
+            notification.style.borderRadius = '8px';
+            notification.style.animation = 'slideIn 0.3s ease-out';
+            notification.textContent = message;
+
+            // 添加动画样式
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // 添加到页面
+            document.body.appendChild(notification);
+
+            // 1秒后移除
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,2925 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>网址导航 - 系统管理平台</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/pinyin-pro/3.19.6/index.js"></script>
+    <style>
+        body {
+            background: #f8f9fa;
+            color: #2c3e50;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .tech-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%),
+                repeating-linear-gradient(45deg, rgba(44,62,80,0.05) 0px, rgba(44,62,80,0.05) 1px, transparent 1px, transparent 10px),
+                repeating-linear-gradient(-45deg, rgba(44,62,80,0.05) 0px, rgba(44,62,80,0.05) 1px, transparent 1px, transparent 10px);
+        }
+
+        .navbar {
+            background: rgba(255,255,255,0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(44,62,80,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .navbar-brand {
+            color: #2c3e50 !important;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            color: #2c3e50 !important;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #3498db !important;
+        }
+
+        .nav-category {
+            background: rgba(255,255,255,0.9);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid rgba(44,62,80,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .nav-category:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(52,152,219,0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-title i {
+            color: #3498db;
+        }
+
+        .category-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-category:hover .category-title::after {
+            transform: scaleX(1);
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 0.35rem;
+        }
+
+        @media (min-width: 768px) {
+            .nav-grid {
+                grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+            }
+        }
+
+        .nav-item {
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .nav-icon {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 0.2rem;
+            background: #fff;
+            border: 1px solid rgba(44,62,80,0.1);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .nav-icon img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover .nav-icon {
+            background: #f8f9fa;
+            border-color: #3498db;
+            box-shadow: 0 0 8px rgba(52,152,219,0.2);
+            transform: scale(1.05);
+        }
+
+        .nav-item:hover .nav-icon img {
+            transform: scale(1.1);
+        }
+
+        .nav-name {
+            font-size: 12px;
+            color: #2c3e50;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.2;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item:hover .nav-name {
+            color: #3498db;
+            transform: scale(1.02);
+        }
+
+        .container {
+            max-width: 1400px;
+            padding: 2rem 1rem;
+        }
+
+        .search-box {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            padding-left: 2.5rem;
+            border: 1px solid rgba(44,62,80,0.1);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52,152,219,0.2);
+            transform: scale(1.01);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #95a5a6;
+        }
+
+        .category-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        @media (min-width: 1200px) {
+            .category-wrapper {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 添加搜索结果高亮效果 */
+        .search-highlight {
+            background: rgba(52,152,219,0.1);
+            border-radius: 4px;
+            padding: 0.1rem 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="tech-bg"></div>
+
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-compass me-2"></i>网址导航
+            </a>
+            <a href="/dashboard" class="btn btn-outline-primary">
+                <i class="fas fa-home me-2"></i>返回主页
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="搜索网站..." oninput="searchSites(this.value)">
+        </div>
+
+        <div class="category-wrapper">
+            <!-- AI 工具与服务 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-robot"></i>AI 对话助手</h2>
+                <div class="nav-grid">
+                    <a href="https://chat.openai.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://chat.openai.com/favicon.ico" alt="ChatGPT">
+                            </div>
+                            <p class="nav-name">ChatGPT</p>
+                        </div>
+                    </a>
+                    <a href="https://claude.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://claude.ai/favicon.ico" alt="Claude">
+                            </div>
+                            <p class="nav-name">Claude</p>
+                        </div>
+                    </a>
+                    <a href="https://gemini.google.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.gstatic.com/lamda/images/favicon_v1_150160cddff7f294ce30.svg" alt="Gemini">
+                            </div>
+                            <p class="nav-name">Gemini</p>
+                        </div>
+                    </a>
+                    <a href="https://yiyan.baidu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://yiyan.baidu.com/favicon.ico" alt="文心一言">
+                            </div>
+                            <p class="nav-name">文心一言</p>
+                        </div>
+                    </a>
+                    <a href="https://tongyi.aliyun.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://tongyi.aliyun.com/favicon.ico" alt="通义千问">
+                            </div>
+                            <p class="nav-name">通义千问</p>
+                        </div>
+                    </a>
+                    <a href="https://xinghuo.xfyun.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://xinghuo.xfyun.cn/favicon.ico" alt="讯飞星火">
+                            </div>
+                            <p class="nav-name">讯飞星火</p>
+                        </div>
+                    </a>
+                    <a href="https://chat.360.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://chat.360.cn/favicon.ico" alt="360智脑">
+                            </div>
+                            <p class="nav-name">360智脑</p>
+                        </div>
+                    </a>
+                    <a href="https://chatglm.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://chatglm.cn/favicon.ico" alt="ChatGLM">
+                            </div>
+                            <p class="nav-name">ChatGLM</p>
+                        </div>
+                    </a>
+                    <a href="https://www.anthropic.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.anthropic.com/favicon.ico" alt="Anthropic">
+                            </div>
+                            <p class="nav-name">Anthropic</p>
+                        </div>
+                    </a>
+                    <a href="https://character.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://character.ai/favicon.ico" alt="Character.ai">
+                            </div>
+                            <p class="nav-name">Character.ai</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI 图像工具 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-image"></i>AI 图像工具</h2>
+                <div class="nav-grid">
+                    <a href="https://stability.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://stability.ai/favicon.ico" alt="Stable Diffusion">
+                            </div>
+                            <p class="nav-name">SD</p>
+                        </div>
+                    </a>
+                    <a href="https://www.midjourney.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.midjourney.com/favicon.ico" alt="Midjourney">
+                            </div>
+                            <p class="nav-name">Midjourney</p>
+                        </div>
+                    </a>
+                    <a href="https://firefly.adobe.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://firefly.adobe.com/favicon.ico" alt="Adobe Firefly">
+                            </div>
+                            <p class="nav-name">Firefly</p>
+                        </div>
+                    </a>
+                    <a href="https://www.canva.com/ai-image-generator" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.canva.com/favicon.ico" alt="Canva AI">
+                            </div>
+                            <p class="nav-name">Canva AI</p>
+                        </div>
+                    </a>
+                    <a href="https://clipdrop.co" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://clipdrop.co/favicon.ico" alt="ClipDrop">
+                            </div>
+                            <p class="nav-name">ClipDrop</p>
+                        </div>
+                    </a>
+                    <a href="https://www.bing.com/create" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.bing.com/favicon.ico" alt="Bing Create">
+                            </div>
+                            <p class="nav-name">Bing Create</p>
+                        </div>
+                    </a>
+                    <a href="https://leonardo.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://leonardo.ai/favicon.ico" alt="Leonardo.ai">
+                            </div>
+                            <p class="nav-name">Leonardo</p>
+                        </div>
+                    </a>
+                    <a href="https://runwayml.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://runwayml.com/favicon.ico" alt="Runway">
+                            </div>
+                            <p class="nav-name">Runway</p>
+                        </div>
+                    </a>
+                    <a href="https://www.getimg.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.getimg.ai/favicon.ico" alt="Getimg.ai">
+                            </div>
+                            <p class="nav-name">Getimg.ai</p>
+                        </div>
+                    </a>
+                    <a href="https://dreamstudio.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://dreamstudio.ai/favicon.ico" alt="DreamStudio">
+                            </div>
+                            <p class="nav-name">DreamStudio</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI 音频工具 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-music"></i>AI 音频工具</h2>
+                <div class="nav-grid">
+                    <a href="https://elevenlabs.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://elevenlabs.io/favicon.ico" alt="ElevenLabs">
+                            </div>
+                            <p class="nav-name">ElevenLabs</p>
+                        </div>
+                    </a>
+                    <a href="https://www.riffusion.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.riffusion.com/favicon.ico" alt="Riffusion">
+                            </div>
+                            <p class="nav-name">Riffusion</p>
+                        </div>
+                    </a>
+                    <a href="https://soundraw.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://soundraw.io/favicon.ico" alt="Soundraw">
+                            </div>
+                            <p class="nav-name">Soundraw</p>
+                        </div>
+                    </a>
+                    <a href="https://www.lalal.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.lalal.ai/favicon.ico" alt="LALAL.AI">
+                            </div>
+                            <p class="nav-name">LALAL.AI</p>
+                        </div>
+                    </a>
+                    <a href="https://mubert.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://mubert.com/favicon.ico" alt="Mubert">
+                            </div>
+                            <p class="nav-name">Mubert</p>
+                        </div>
+                    </a>
+                    <a href="https://www.descript.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.descript.com/favicon.ico" alt="Descript">
+                            </div>
+                            <p class="nav-name">Descript</p>
+                        </div>
+                    </a>
+                    <a href="https://www.synthesia.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.synthesia.io/favicon.ico" alt="Synthesia">
+                            </div>
+                            <p class="nav-name">Synthesia</p>
+                        </div>
+                    </a>
+                    <a href="https://www.voicemod.net" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.voicemod.net/favicon.ico" alt="Voicemod">
+                            </div>
+                            <p class="nav-name">Voicemod</p>
+                        </div>
+                    </a>
+                    <a href="https://www.resemble.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.resemble.ai/favicon.ico" alt="Resemble">
+                            </div>
+                            <p class="nav-name">Resemble</p>
+                        </div>
+                    </a>
+                    <a href="https://www.speechify.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.speechify.com/favicon.ico" alt="Speechify">
+                            </div>
+                            <p class="nav-name">Speechify</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 云计算平台 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-cloud"></i>云计算平台</h2>
+                <div class="nav-grid">
+                    <a href="https://aws.amazon.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://a0.awsstatic.com/libra-css/images/site/touch-icon-ipad-144-smile.png" alt="AWS">
+                            </div>
+                            <p class="nav-name">AWS</p>
+                        </div>
+                    </a>
+                    <a href="https://azure.microsoft.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://azure.microsoft.com/favicon.ico" alt="Azure">
+                            </div>
+                            <p class="nav-name">Azure</p>
+                        </div>
+                    </a>
+                    <a href="https://cloud.google.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://cloud.google.com/favicon.ico" alt="GCP">
+                            </div>
+                            <p class="nav-name">GCP</p>
+                        </div>
+                    </a>
+                    <a href="https://www.aliyun.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.aliyun.com/favicon.ico" alt="阿里云">
+                            </div>
+                            <p class="nav-name">阿里云</p>
+                        </div>
+                    </a>
+                    <a href="https://cloud.tencent.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://cloud.tencent.com/favicon.ico" alt="腾讯云">
+                            </div>
+                            <p class="nav-name">腾讯云</p>
+                        </div>
+                    </a>
+                    <a href="https://www.huaweicloud.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.huaweicloud.com/favicon.ico" alt="华为云">
+                            </div>
+                            <p class="nav-name">华为云</p>
+                        </div>
+                    </a>
+                    <a href="https://www.volcengine.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.volcengine.com/favicon.ico" alt="火山引擎">
+                            </div>
+                            <p class="nav-name">火山引擎</p>
+                        </div>
+                    </a>
+                    <a href="https://www.ucloud.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ucloud.cn/favicon.ico" alt="UCloud">
+                            </div>
+                            <p class="nav-name">UCloud</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 开发工具 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-code"></i>开发工具</h2>
+                <div class="nav-grid">
+                    <a href="https://code.visualstudio.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://code.visualstudio.com/favicon.ico" alt="VS Code">
+                            </div>
+                            <p class="nav-name">VS Code</p>
+                        </div>
+                    </a>
+                    <a href="https://www.jetbrains.com/idea" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.jetbrains.com/favicon-32x32.png" alt="IDEA">
+                            </div>
+                            <p class="nav-name">IDEA</p>
+                        </div>
+                    </a>
+                    <a href="https://www.sublimetext.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.sublimetext.com/favicon.ico" alt="Sublime">
+                            </div>
+                            <p class="nav-name">Sublime</p>
+                        </div>
+                    </a>
+                    <a href="https://www.postman.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.postman.com/favicon.ico" alt="Postman">
+                            </div>
+                            <p class="nav-name">Postman</p>
+                        </div>
+                    </a>
+                    <a href="https://git-scm.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://git-scm.com/favicon.ico" alt="Git">
+                            </div>
+                            <p class="nav-name">Git</p>
+                        </div>
+                    </a>
+                    <a href="https://www.docker.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.docker.com/favicon.ico" alt="Docker">
+                            </div>
+                            <p class="nav-name">Docker</p>
+                        </div>
+                    </a>
+                    <a href="https://maven.apache.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://maven.apache.org/favicon.ico" alt="Maven">
+                            </div>
+                            <p class="nav-name">Maven</p>
+                        </div>
+                    </a>
+                    <a href="https://www.npmjs.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://static.npmjs.com/favicon.ico" alt="NPM">
+                            </div>
+                            <p class="nav-name">NPM</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 技术社区 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-users"></i>技术社区</h2>
+                <div class="nav-grid">
+                    <a href="https://github.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://github.githubassets.com/favicons/favicon.png" alt="GitHub">
+                            </div>
+                            <p class="nav-name">GitHub</p>
+                        </div>
+                    </a>
+                    <a href="https://stackoverflow.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico" alt="Stack Overflow">
+                            </div>
+                            <p class="nav-name">Stack Overflow</p>
+                        </div>
+                    </a>
+                    <a href="https://juejin.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://lf3-cdn-tos.bytescm.com/obj/static/xitu_juejin_web//static/favicons/favicon-32x32.png" alt="掘金">
+                            </div>
+                            <p class="nav-name">掘金</p>
+                        </div>
+                    </a>
+                    <a href="https://segmentfault.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://static.segmentfault.com/main_site_v3/favicon.ico" alt="思否">
+                            </div>
+                            <p class="nav-name">思否</p>
+                        </div>
+                    </a>
+                    <a href="https://www.v2ex.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.v2ex.com/favicon.ico" alt="V2EX">
+                            </div>
+                            <p class="nav-name">V2EX</p>
+                        </div>
+                    </a>
+                    <a href="https://www.oschina.net" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.oschina.net/favicon.ico" alt="开源中国">
+                            </div>
+                            <p class="nav-name">开源中国</p>
+                        </div>
+                    </a>
+                    <a href="https://gitee.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://gitee.com/favicon.ico" alt="Gitee">
+                            </div>
+                            <p class="nav-name">Gitee</p>
+                        </div>
+                    </a>
+                    <a href="https://www.51cto.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.51cto.com/favicon.ico" alt="51CTO">
+                            </div>
+                            <p class="nav-name">51CTO</p>
+                        </div>
+                    </a>
+                    <a href="https://www.cnblogs.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.cnblogs.com/favicon.ico" alt="博客园">
+                            </div>
+                            <p class="nav-name">博客园</p>
+                        </div>
+                    </a>
+                    <a href="https://www.jianshu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.jianshu.com/favicon.ico" alt="简书">
+                            </div>
+                            <p class="nav-name">简书</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 学习资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-graduation-cap"></i>学习资源</h2>
+                <div class="nav-grid">
+                    <a href="https://www.w3schools.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.w3schools.com/favicon.ico" alt="W3Schools">
+                            </div>
+                            <p class="nav-name">W3Schools</p>
+                        </div>
+                    </a>
+                    <a href="https://developer.mozilla.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://developer.mozilla.org/favicon.ico" alt="MDN">
+                            </div>
+                            <p class="nav-name">MDN</p>
+                        </div>
+                    </a>
+                    <a href="https://www.runoob.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://static.runoob.com/images/favicon.ico" alt="菜鸟教程">
+                            </div>
+                            <p class="nav-name">菜鸟教程</p>
+                        </div>
+                    </a>
+                    <a href="https://www.coursera.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.coursera.org/favicon.ico" alt="Coursera">
+                            </div>
+                            <p class="nav-name">Coursera</p>
+                        </div>
+                    </a>
+                    <a href="https://www.udemy.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.udemy.com/favicon.ico" alt="Udemy">
+                            </div>
+                            <p class="nav-name">Udemy</p>
+                        </div>
+                    </a>
+                    <a href="https://www.edx.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.edx.org/favicon.ico" alt="edX">
+                            </div>
+                            <p class="nav-name">edX</p>
+                        </div>
+                    </a>
+                    <a href="https://www.codecademy.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.codecademy.com/favicon.ico" alt="Codecademy">
+                            </div>
+                            <p class="nav-name">Codecademy</p>
+                        </div>
+                    </a>
+                    <a href="https://leetcode.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://leetcode.cn/favicon.ico" alt="力扣">
+                            </div>
+                            <p class="nav-name">力扣</p>
+                        </div>
+                    </a>
+                    <a href="https://www.nowcoder.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.nowcoder.com/favicon.ico" alt="牛客网">
+                            </div>
+                            <p class="nav-name">牛客网</p>
+                        </div>
+                    </a>
+                    <a href="https://www.imooc.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.imooc.com/favicon.ico" alt="慕课网">
+                            </div>
+                            <p class="nav-name">慕课网</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 设计资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-palette"></i>设计资源</h2>
+                <div class="nav-grid">
+                    <a href="https://www.figma.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.figma.com/favicon.ico" alt="Figma">
+                            </div>
+                            <p class="nav-name">Figma</p>
+                        </div>
+                    </a>
+                    <a href="https://dribbble.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://cdn.dribbble.com/assets/favicon-b38525134603b9513174ec887944bde1a869eb6cd414f4d640ee48ab2a15a26b.ico" alt="Dribbble">
+                            </div>
+                            <p class="nav-name">Dribbble</p>
+                        </div>
+                    </a>
+                    <a href="https://www.behance.net" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://a5.behance.net/2acd11b6b0f1438104ec9ebf5f63c5ee25320520/img/site/favicon.ico" alt="Behance">
+                            </div>
+                            <p class="nav-name">Behance</p>
+                        </div>
+                    </a>
+                    <a href="https://www.ui.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ui.cn/Public/img/favicon.ico" alt="UI中国">
+                            </div>
+                            <p class="nav-name">UI中国</p>
+                        </div>
+                    </a>
+                    <a href="https://huaban.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://huaban.com/favicon.ico" alt="花瓣">
+                            </div>
+                            <p class="nav-name">花瓣</p>
+                        </div>
+                    </a>
+                    <a href="https://www.zcool.com.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://static.zcool.cn/git_z/z/site/favicon.ico" alt="站酷">
+                            </div>
+                            <p class="nav-name">站酷</p>
+                        </div>
+                    </a>
+                    <a href="https://www.iconfont.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://img.alicdn.com/imgextra/i4/O1CN01Z5paLz1O0zuCC7osS_!!6000000001644-55-tps-83-82.svg" alt="Iconfont">
+                            </div>
+                            <p class="nav-name">Iconfont</p>
+                        </div>
+                    </a>
+                    <a href="https://www.flaticon.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.flaticon.com/favicon.ico" alt="Flaticon">
+                            </div>
+                            <p class="nav-name">Flaticon</p>
+                        </div>
+                    </a>
+                    <a href="https://unsplash.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://unsplash.com/favicon.ico" alt="Unsplash">
+                            </div>
+                            <p class="nav-name">Unsplash</p>
+                        </div>
+                    </a>
+                    <a href="https://www.pexels.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.pexels.com/favicon.ico" alt="Pexels">
+                            </div>
+                            <p class="nav-name">Pexels</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 实用工具 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-tools"></i>实用工具</h2>
+                <div class="nav-grid">
+                    <a href="https://www.json.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.json.cn/favicon.ico" alt="JSON工具">
+                            </div>
+                            <p class="nav-name">JSON工具</p>
+                        </div>
+                    </a>
+                    <a href="https://tool.lu" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://tool.lu/favicon.ico" alt="在线工具">
+                            </div>
+                            <p class="nav-name">在线工具</p>
+                        </div>
+                    </a>
+                    <a href="https://www.processon.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.processon.com/favicon.ico" alt="ProcessOn">
+                            </div>
+                            <p class="nav-name">ProcessOn</p>
+                        </div>
+                    </a>
+                    <a href="https://www.draw.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.draw.io/favicon.ico" alt="Draw.io">
+                            </div>
+                            <p class="nav-name">Draw.io</p>
+                        </div>
+                    </a>
+                    <a href="https://regex101.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://regex101.com/favicon.ico" alt="Regex101">
+                            </div>
+                            <p class="nav-name">Regex101</p>
+                        </div>
+                    </a>
+                    <a href="https://caniuse.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://caniuse.com/favicon.ico" alt="Can I Use">
+                            </div>
+                            <p class="nav-name">Can I Use</p>
+                        </div>
+                    </a>
+                    <a href="https://carbon.now.sh" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://carbon.now.sh/favicon.ico" alt="Carbon">
+                            </div>
+                            <p class="nav-name">Carbon</p>
+                        </div>
+                    </a>
+                    <a href="https://tinypng.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://tinypng.com/favicon.ico" alt="TinyPNG">
+                            </div>
+                            <p class="nav-name">TinyPNG</p>
+                        </div>
+                    </a>
+                    <a href="https://www.ilovepdf.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ilovepdf.com/favicon.ico" alt="iLovePDF">
+                            </div>
+                            <p class="nav-name">iLovePDF</p>
+                        </div>
+                    </a>
+                    <a href="https://www.remove.bg" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.remove.bg/favicon.ico" alt="Remove.bg">
+                            </div>
+                            <p class="nav-name">Remove.bg</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 办公协作 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-briefcase"></i>办公协作</h2>
+                <div class="nav-grid">
+                    <a href="https://www.notion.so" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.notion.so/favicon.ico" alt="Notion">
+                            </div>
+                            <p class="nav-name">Notion</p>
+                        </div>
+                    </a>
+                    <a href="https://feishu.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://sf3-scmcdn2-cn.feishucdn.com/ccm/pc/web/resource/bear/favicon.ico" alt="飞书">
+                            </div>
+                            <p class="nav-name">飞书</p>
+                        </div>
+                    </a>
+                    <a href="https://www.dingtalk.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.dingtalk.com/favicon.ico" alt="钉钉">
+                            </div>
+                            <p class="nav-name">钉钉</p>
+                        </div>
+                    </a>
+                    <a href="https://www.wecom.work" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.wecom.work/favicon.ico" alt="企业微信">
+                            </div>
+                            <p class="nav-name">企业微信</p>
+                        </div>
+                    </a>
+                    <a href="https://trello.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://trello.com/favicon.ico" alt="Trello">
+                            </div>
+                            <p class="nav-name">Trello</p>
+                        </div>
+                    </a>
+                    <a href="https://www.asana.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.asana.com/favicon.ico" alt="Asana">
+                            </div>
+                            <p class="nav-name">Asana</p>
+                        </div>
+                    </a>
+                    <a href="https://monday.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://monday.com/favicon.ico" alt="Monday">
+                            </div>
+                            <p class="nav-name">Monday</p>
+                        </div>
+                    </a>
+                    <a href="https://www.teambition.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.teambition.com/favicon.ico" alt="Teambition">
+                            </div>
+                            <p class="nav-name">Teambition</p>
+                        </div>
+                    </a>
+                    <a href="https://www.yuque.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.yuque.com/favicon.ico" alt="语雀">
+                            </div>
+                            <p class="nav-name">语雀</p>
+                        </div>
+                    </a>
+                    <a href="https://shimo.im" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://shimo.im/favicon.ico" alt="石墨文档">
+                            </div>
+                            <p class="nav-name">石墨文档</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 新闻资讯 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-newspaper"></i>新闻资讯</h2>
+                <div class="nav-grid">
+                    <a href="https://www.36kr.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.36kr.com/favicon.ico" alt="36氪">
+                            </div>
+                            <p class="nav-name">36氪</p>
+                        </div>
+                    </a>
+                    <a href="https://techcrunch.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://techcrunch.com/favicon.ico" alt="TechCrunch">
+                            </div>
+                            <p class="nav-name">TechCrunch</p>
+                        </div>
+                    </a>
+                    <a href="https://www.geekpark.net" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.geekpark.net/favicon.ico" alt="极客公园">
+                            </div>
+                            <p class="nav-name">极客公园</p>
+                        </div>
+                    </a>
+                    <a href="https://www.ifanr.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ifanr.com/favicon.ico" alt="爱范儿">
+                            </div>
+                            <p class="nav-name">爱范儿</p>
+                        </div>
+                    </a>
+                    <a href="https://www.pingwest.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.pingwest.com/favicon.ico" alt="品玩">
+                            </div>
+                            <p class="nav-name">品玩</p>
+                        </div>
+                    </a>
+                    <a href="https://www.tmtpost.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.tmtpost.com/favicon.ico" alt="钛媒体">
+                            </div>
+                            <p class="nav-name">钛媒体</p>
+                        </div>
+                    </a>
+                    <a href="https://www.huxiu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.huxiu.com/favicon.ico" alt="虎嗅">
+                            </div>
+                            <p class="nav-name">虎嗅</p>
+                        </div>
+                    </a>
+                    <a href="https://www.leiphone.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.leiphone.com/favicon.ico" alt="雷锋网">
+                            </div>
+                            <p class="nav-name">雷锋网</p>
+                        </div>
+                    </a>
+                    <a href="https://www.infoq.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://static.infoq.cn/static/infoq/www/img/favicon.ico" alt="InfoQ">
+                            </div>
+                            <p class="nav-name">InfoQ</p>
+                        </div>
+                    </a>
+                    <a href="https://www.ithome.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ithome.com/favicon.ico" alt="IT之家">
+                            </div>
+                            <p class="nav-name">IT之家</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 生活服务 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-utensils"></i>生活服务</h2>
+                <div class="nav-grid">
+                    <a href="https://www.meituan.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.meituan.com/favicon.ico" alt="美团">
+                            </div>
+                            <p class="nav-name">美团</p>
+                        </div>
+                    </a>
+                    <a href="https://www.ele.me" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ele.me/favicon.ico" alt="饿了么">
+                            </div>
+                            <p class="nav-name">饿了么</p>
+                        </div>
+                    </a>
+                    <a href="https://www.ctrip.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ctrip.com/favicon.ico" alt="携程">
+                            </div>
+                            <p class="nav-name">携程</p>
+                        </div>
+                    </a>
+                    <a href="https://www.12306.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.12306.cn/favicon.ico" alt="12306">
+                            </div>
+                            <p class="nav-name">12306</p>
+                        </div>
+                    </a>
+                    <a href="https://www.didi.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.didi.com/favicon.ico" alt="滴滴出行">
+                            </div>
+                            <p class="nav-name">滴滴出行</p>
+                        </div>
+                    </a>
+                    <a href="https://www.58.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.58.com/favicon.ico" alt="58同城">
+                            </div>
+                            <p class="nav-name">58同城</p>
+                        </div>
+                    </a>
+                    <a href="https://www.lianjia.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.lianjia.com/favicon.ico" alt="链家">
+                            </div>
+                            <p class="nav-name">链家</p>
+                        </div>
+                    </a>
+                    <a href="https://www.guahao.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.guahao.com/favicon.ico" alt="微医">
+                            </div>
+                            <p class="nav-name">微医</p>
+                        </div>
+                    </a>
+                    <a href="https://www.dazhongdianping.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.dazhongdianping.com/favicon.ico" alt="大众点评">
+                            </div>
+                            <p class="nav-name">大众点评</p>
+                        </div>
+                    </a>
+                    <a href="https://www.amap.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.amap.com/favicon.ico" alt="高德地图">
+                            </div>
+                            <p class="nav-name">高德地图</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI 视频工具 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-video"></i>AI 视频工具</h2>
+                <div class="nav-grid">
+                    <a href="https://runwayml.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://runwayml.com/favicon.ico" alt="Runway">
+                            </div>
+                            <p class="nav-name">Runway</p>
+                        </div>
+                    </a>
+                    <a href="https://www.synthesia.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.synthesia.io/favicon.ico" alt="Synthesia">
+                            </div>
+                            <p class="nav-name">Synthesia</p>
+                        </div>
+                    </a>
+                    <a href="https://www.d-id.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.d-id.com/favicon.ico" alt="D-ID">
+                            </div>
+                            <p class="nav-name">D-ID</p>
+                        </div>
+                    </a>
+                    <a href="https://www.heygen.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.heygen.com/favicon.ico" alt="HeyGen">
+                            </div>
+                            <p class="nav-name">HeyGen</p>
+                        </div>
+                    </a>
+                    <a href="https://www.descript.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.descript.com/favicon.ico" alt="Descript">
+                            </div>
+                            <p class="nav-name">Descript</p>
+                        </div>
+                    </a>
+                    <a href="https://www.kapwing.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.kapwing.com/favicon.ico" alt="Kapwing">
+                            </div>
+                            <p class="nav-name">Kapwing</p>
+                        </div>
+                    </a>
+                    <a href="https://www.pictory.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.pictory.ai/favicon.ico" alt="Pictory">
+                            </div>
+                            <p class="nav-name">Pictory</p>
+                        </div>
+                    </a>
+                    <a href="https://www.veed.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.veed.io/favicon.ico" alt="VEED">
+                            </div>
+                            <p class="nav-name">VEED</p>
+                        </div>
+                    </a>
+                    <a href="https://www.steve.ai" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.steve.ai/favicon.ico" alt="Steve AI">
+                            </div>
+                            <p class="nav-name">Steve AI</p>
+                        </div>
+                    </a>
+                    <a href="https://www.wonderdynamics.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.wonderdynamics.com/favicon.ico" alt="Wonder">
+                            </div>
+                            <p class="nav-name">Wonder</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Java资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fab fa-java"></i>Java资源</h2>
+                <div class="nav-grid">
+                    <a href="https://www.oracle.com/java" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.oracle.com/favicon.ico" alt="Java">
+                            </div>
+                            <p class="nav-name">Java</p>
+                        </div>
+                    </a>
+                    <a href="https://spring.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://spring.io/favicon.ico" alt="Spring">
+                            </div>
+                            <p class="nav-name">Spring</p>
+                        </div>
+                    </a>
+                    <a href="https://hibernate.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://hibernate.org/favicon.ico" alt="Hibernate">
+                            </div>
+                            <p class="nav-name">Hibernate</p>
+                        </div>
+                    </a>
+                    <a href="https://mybatis.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://mybatis.org/favicon.ico" alt="MyBatis">
+                            </div>
+                            <p class="nav-name">MyBatis</p>
+                        </div>
+                    </a>
+                    <a href="https://tomcat.apache.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://tomcat.apache.org/favicon.ico" alt="Tomcat">
+                            </div>
+                            <p class="nav-name">Tomcat</p>
+                        </div>
+                    </a>
+                    <a href="https://netty.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://netty.io/favicon.ico" alt="Netty">
+                            </div>
+                            <p class="nav-name">Netty</p>
+                        </div>
+                    </a>
+                    <a href="https://gradle.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://gradle.org/favicon.ico" alt="Gradle">
+                            </div>
+                            <p class="nav-name">Gradle</p>
+                        </div>
+                    </a>
+                    <a href="https://junit.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://junit.org/favicon.ico" alt="JUnit">
+                            </div>
+                            <p class="nav-name">JUnit</p>
+                        </div>
+                    </a>
+                    <a href="https://www.jetbrains.com/idea" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.jetbrains.com/favicon-32x32.png" alt="IDEA">
+                            </div>
+                            <p class="nav-name">IDEA</p>
+                        </div>
+                    </a>
+                    <a href="https://maven.apache.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://maven.apache.org/favicon.ico" alt="Maven">
+                            </div>
+                            <p class="nav-name">Maven</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Python资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fab fa-python"></i>Python资源</h2>
+                <div class="nav-grid">
+                    <a href="https://www.python.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.python.org/favicon.ico" alt="Python">
+                            </div>
+                            <p class="nav-name">Python</p>
+                        </div>
+                    </a>
+                    <a href="https://pytorch.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://pytorch.org/favicon.ico" alt="PyTorch">
+                            </div>
+                            <p class="nav-name">PyTorch</p>
+                        </div>
+                    </a>
+                    <a href="https://www.tensorflow.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.tensorflow.org/favicon.ico" alt="TensorFlow">
+                            </div>
+                            <p class="nav-name">TensorFlow</p>
+                        </div>
+                    </a>
+                    <a href="https://numpy.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://numpy.org/favicon.ico" alt="NumPy">
+                            </div>
+                            <p class="nav-name">NumPy</p>
+                        </div>
+                    </a>
+                    <a href="https://pandas.pydata.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://pandas.pydata.org/favicon.ico" alt="Pandas">
+                            </div>
+                            <p class="nav-name">Pandas</p>
+                        </div>
+                    </a>
+                    <a href="https://scikit-learn.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://scikit-learn.org/favicon.ico" alt="Scikit-learn">
+                            </div>
+                            <p class="nav-name">Scikit-learn</p>
+                        </div>
+                    </a>
+                    <a href="https://flask.palletsprojects.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://flask.palletsprojects.com/favicon.ico" alt="Flask">
+                            </div>
+                            <p class="nav-name">Flask</p>
+                        </div>
+                    </a>
+                    <a href="https://www.djangoproject.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.djangoproject.com/favicon.ico" alt="Django">
+                            </div>
+                            <p class="nav-name">Django</p>
+                        </div>
+                    </a>
+                    <a href="https://fastapi.tiangolo.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://fastapi.tiangolo.com/favicon.ico" alt="FastAPI">
+                            </div>
+                            <p class="nav-name">FastAPI</p>
+                        </div>
+                    </a>
+                    <a href="https://www.anaconda.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.anaconda.com/favicon.ico" alt="Anaconda">
+                            </div>
+                            <p class="nav-name">Anaconda</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- JavaScript资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fab fa-js"></i>JavaScript资源</h2>
+                <div class="nav-grid">
+                    <a href="https://nodejs.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://nodejs.org/favicon.ico" alt="Node.js">
+                            </div>
+                            <p class="nav-name">Node.js</p>
+                        </div>
+                    </a>
+                    <a href="https://reactjs.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://reactjs.org/favicon.ico" alt="React">
+                            </div>
+                            <p class="nav-name">React</p>
+                        </div>
+                    </a>
+                    <a href="https://vuejs.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://vuejs.org/favicon.ico" alt="Vue.js">
+                            </div>
+                            <p class="nav-name">Vue.js</p>
+                        </div>
+                    </a>
+                    <a href="https://angular.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://angular.io/favicon.ico" alt="Angular">
+                            </div>
+                            <p class="nav-name">Angular</p>
+                        </div>
+                    </a>
+                    <a href="https://www.typescriptlang.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.typescriptlang.org/favicon.ico" alt="TypeScript">
+                            </div>
+                            <p class="nav-name">TypeScript</p>
+                        </div>
+                    </a>
+                    <a href="https://webpack.js.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://webpack.js.org/favicon.ico" alt="Webpack">
+                            </div>
+                            <p class="nav-name">Webpack</p>
+                        </div>
+                    </a>
+                    <a href="https://vitejs.dev" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://vitejs.dev/favicon.ico" alt="Vite">
+                            </div>
+                            <p class="nav-name">Vite</p>
+                        </div>
+                    </a>
+                    <a href="https://nextjs.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://nextjs.org/favicon.ico" alt="Next.js">
+                            </div>
+                            <p class="nav-name">Next.js</p>
+                        </div>
+                    </a>
+                    <a href="https://nuxtjs.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://nuxtjs.org/favicon.ico" alt="Nuxt.js">
+                            </div>
+                            <p class="nav-name">Nuxt.js</p>
+                        </div>
+                    </a>
+                    <a href="https://expressjs.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://expressjs.com/favicon.ico" alt="Express">
+                            </div>
+                            <p class="nav-name">Express</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Go资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fab fa-golang"></i>Go资源</h2>
+                <div class="nav-grid">
+                    <a href="https://golang.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://golang.org/favicon.ico" alt="Go">
+                            </div>
+                            <p class="nav-name">Go</p>
+                        </div>
+                    </a>
+                    <a href="https://gin-gonic.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://gin-gonic.com/favicon.ico" alt="Gin">
+                            </div>
+                            <p class="nav-name">Gin</p>
+                        </div>
+                    </a>
+                    <a href="https://beego.me" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://beego.me/favicon.ico" alt="Beego">
+                            </div>
+                            <p class="nav-name">Beego</p>
+                        </div>
+                    </a>
+                    <a href="https://echo.labstack.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://echo.labstack.com/favicon.ico" alt="Echo">
+                            </div>
+                            <p class="nav-name">Echo</p>
+                        </div>
+                    </a>
+                    <a href="https://gorm.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://gorm.io/favicon.ico" alt="GORM">
+                            </div>
+                            <p class="nav-name">GORM</p>
+                        </div>
+                    </a>
+                    <a href="https://pkg.go.dev" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://pkg.go.dev/favicon.ico" alt="Go Packages">
+                            </div>
+                            <p class="nav-name">Go Packages</p>
+                        </div>
+                    </a>
+                    <a href="https://goframe.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://goframe.org/favicon.ico" alt="GoFrame">
+                            </div>
+                            <p class="nav-name">GoFrame</p>
+                        </div>
+                    </a>
+                    <a href="https://fiber.wiki" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://fiber.wiki/favicon.ico" alt="Fiber">
+                            </div>
+                            <p class="nav-name">Fiber</p>
+                        </div>
+                    </a>
+                    <a href="https://revel.github.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://revel.github.io/favicon.ico" alt="Revel">
+                            </div>
+                            <p class="nav-name">Revel</p>
+                        </div>
+                    </a>
+                    <a href="https://iris-go.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://iris-go.com/favicon.ico" alt="Iris">
+                            </div>
+                            <p class="nav-name">Iris</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 前端开发资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-code"></i>前端开发资源</h2>
+                <div class="nav-grid">
+                    <a href="https://developer.mozilla.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://developer.mozilla.org/favicon.ico" alt="MDN">
+                            </div>
+                            <p class="nav-name">MDN</p>
+                        </div>
+                    </a>
+                    <a href="https://sass-lang.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://sass-lang.com/favicon.ico" alt="Sass">
+                            </div>
+                            <p class="nav-name">Sass</p>
+                        </div>
+                    </a>
+                    <a href="https://tailwindcss.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://tailwindcss.com/favicon.ico" alt="Tailwind CSS">
+                            </div>
+                            <p class="nav-name">Tailwind CSS</p>
+                        </div>
+                    </a>
+                    <a href="https://ant.design" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://ant.design/favicon.ico" alt="Ant Design">
+                            </div>
+                            <p class="nav-name">Ant Design</p>
+                        </div>
+                    </a>
+                    <a href="https://element-plus.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://element-plus.org/favicon.ico" alt="Element Plus">
+                            </div>
+                            <p class="nav-name">Element Plus</p>
+                        </div>
+                    </a>
+                    <a href="https://material-ui.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://material-ui.com/favicon.ico" alt="Material UI">
+                            </div>
+                            <p class="nav-name">Material UI</p>
+                        </div>
+                    </a>
+                    <a href="https://storybook.js.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://storybook.js.org/favicon.ico" alt="Storybook">
+                            </div>
+                            <p class="nav-name">Storybook</p>
+                        </div>
+                    </a>
+                    <a href="https://www.cypress.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.cypress.io/favicon.ico" alt="Cypress">
+                            </div>
+                            <p class="nav-name">Cypress</p>
+                        </div>
+                    </a>
+                    <a href="https://jestjs.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://jestjs.io/favicon.ico" alt="Jest">
+                            </div>
+                            <p class="nav-name">Jest</p>
+                        </div>
+                    </a>
+                    <a href="https://eslint.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://eslint.org/favicon.ico" alt="ESLint">
+                            </div>
+                            <p class="nav-name">ESLint</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 后端开发资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-server"></i>后端开发资源</h2>
+                <div class="nav-grid">
+                    <a href="https://nginx.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://nginx.org/favicon.ico" alt="Nginx">
+                            </div>
+                            <p class="nav-name">Nginx</p>
+                        </div>
+                    </a>
+                    <a href="https://redis.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://redis.io/favicon.ico" alt="Redis">
+                            </div>
+                            <p class="nav-name">Redis</p>
+                        </div>
+                    </a>
+                    <a href="https://www.rabbitmq.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.rabbitmq.com/favicon.ico" alt="RabbitMQ">
+                            </div>
+                            <p class="nav-name">RabbitMQ</p>
+                        </div>
+                    </a>
+                    <a href="https://kafka.apache.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://kafka.apache.org/favicon.ico" alt="Kafka">
+                            </div>
+                            <p class="nav-name">Kafka</p>
+                        </div>
+                    </a>
+                    <a href="https://graphql.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://graphql.org/favicon.ico" alt="GraphQL">
+                            </div>
+                            <p class="nav-name">GraphQL</p>
+                        </div>
+                    </a>
+                    <a href="https://grpc.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://grpc.io/favicon.ico" alt="gRPC">
+                            </div>
+                            <p class="nav-name">gRPC</p>
+                        </div>
+                    </a>
+                    <a href="https://www.elastic.co" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.elastic.co/favicon.ico" alt="Elasticsearch">
+                            </div>
+                            <p class="nav-name">Elasticsearch</p>
+                        </div>
+                    </a>
+                    <a href="https://prometheus.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://prometheus.io/favicon.ico" alt="Prometheus">
+                            </div>
+                            <p class="nav-name">Prometheus</p>
+                        </div>
+                    </a>
+                    <a href="https://www.consul.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.consul.io/favicon.ico" alt="Consul">
+                            </div>
+                            <p class="nav-name">Consul</p>
+                        </div>
+                    </a>
+                    <a href="https://etcd.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://etcd.io/favicon.ico" alt="etcd">
+                            </div>
+                            <p class="nav-name">etcd</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 移动开发资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-mobile-alt"></i>移动开发资源</h2>
+                <div class="nav-grid">
+                    <a href="https://developer.android.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://developer.android.com/favicon.ico" alt="Android Developer">
+                            </div>
+                            <p class="nav-name">Android Developer</p>
+                        </div>
+                    </a>
+                    <a href="https://developer.apple.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://developer.apple.com/favicon.ico" alt="Apple Developer">
+                            </div>
+                            <p class="nav-name">Apple Developer</p>
+                        </div>
+                    </a>
+                    <a href="https://flutter.dev" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://flutter.dev/favicon.ico" alt="Flutter">
+                            </div>
+                            <p class="nav-name">Flutter</p>
+                        </div>
+                    </a>
+                    <a href="https://reactnative.dev" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://reactnative.dev/favicon.ico" alt="React Native">
+                            </div>
+                            <p class="nav-name">React Native</p>
+                        </div>
+                    </a>
+                    <a href="https://ionicframework.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://ionicframework.com/favicon.ico" alt="Ionic">
+                            </div>
+                            <p class="nav-name">Ionic</p>
+                        </div>
+                    </a>
+                    <a href="https://kotlinlang.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://kotlinlang.org/favicon.ico" alt="Kotlin">
+                            </div>
+                            <p class="nav-name">Kotlin</p>
+                        </div>
+                    </a>
+                    <a href="https://developer.apple.com/swift" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://developer.apple.com/swift/favicon.ico" alt="Swift">
+                            </div>
+                            <p class="nav-name">Swift</p>
+                        </div>
+                    </a>
+                    <a href="https://capacitorjs.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://capacitorjs.com/favicon.ico" alt="Capacitor">
+                            </div>
+                            <p class="nav-name">Capacitor</p>
+                        </div>
+                    </a>
+                    <a href="https://www.xamarin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.xamarin.com/favicon.ico" alt="Xamarin">
+                            </div>
+                            <p class="nav-name">Xamarin</p>
+                        </div>
+                    </a>
+                    <a href="https://unity.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://unity.com/favicon.ico" alt="Unity">
+                            </div>
+                            <p class="nav-name">Unity</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 数据库资源 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-database"></i>数据库资源</h2>
+                <div class="nav-grid">
+                    <a href="https://www.mysql.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.mysql.com/favicon.ico" alt="MySQL">
+                            </div>
+                            <p class="nav-name">MySQL</p>
+                        </div>
+                    </a>
+                    <a href="https://www.postgresql.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.postgresql.org/favicon.ico" alt="PostgreSQL">
+                            </div>
+                            <p class="nav-name">PostgreSQL</p>
+                        </div>
+                    </a>
+                    <a href="https://www.mongodb.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.mongodb.com/favicon.ico" alt="MongoDB">
+                            </div>
+                            <p class="nav-name">MongoDB</p>
+                        </div>
+                    </a>
+                    <a href="https://redis.io" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://redis.io/favicon.ico" alt="Redis">
+                            </div>
+                            <p class="nav-name">Redis</p>
+                        </div>
+                    </a>
+                    <a href="https://www.oracle.com/database" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.oracle.com/favicon.ico" alt="Oracle">
+                            </div>
+                            <p class="nav-name">Oracle</p>
+                        </div>
+                    </a>
+                    <a href="https://www.microsoft.com/sql-server" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.microsoft.com/favicon.ico" alt="SQL Server">
+                            </div>
+                            <p class="nav-name">SQL Server</p>
+                        </div>
+                    </a>
+                    <a href="https://couchdb.apache.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://couchdb.apache.org/favicon.ico" alt="CouchDB">
+                            </div>
+                            <p class="nav-name">CouchDB</p>
+                        </div>
+                    </a>
+                    <a href="https://cassandra.apache.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://cassandra.apache.org/favicon.ico" alt="Cassandra">
+                            </div>
+                            <p class="nav-name">Cassandra</p>
+                        </div>
+                    </a>
+                    <a href="https://www.influxdata.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.influxdata.com/favicon.ico" alt="InfluxDB">
+                            </div>
+                            <p class="nav-name">InfluxDB</p>
+                        </div>
+                    </a>
+                    <a href="https://neo4j.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://neo4j.com/favicon.ico" alt="Neo4j">
+                            </div>
+                            <p class="nav-name">Neo4j</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 影音娱乐 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-film"></i>影音娱乐</h2>
+                <div class="nav-grid">
+                    <a href="https://www.bilibili.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.bilibili.com/favicon.ico" alt="哔哩哔哩">
+                            </div>
+                            <p class="nav-name">哔哩哔哩</p>
+                        </div>
+                    </a>
+                    <a href="https://v.qq.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://v.qq.com/favicon.ico" alt="腾讯视频">
+                            </div>
+                            <p class="nav-name">腾讯视频</p>
+                        </div>
+                    </a>
+                    <a href="https://www.iqiyi.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.iqiyi.com/favicon.ico" alt="爱奇艺">
+                            </div>
+                            <p class="nav-name">爱奇艺</p>
+                        </div>
+                    </a>
+                    <a href="https://www.youku.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.youku.com/favicon.ico" alt="优酷">
+                            </div>
+                            <p class="nav-name">优酷</p>
+                        </div>
+                    </a>
+                    <a href="https://www.youtube.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.youtube.com/favicon.ico" alt="YouTube">
+                            </div>
+                            <p class="nav-name">YouTube</p>
+                        </div>
+                    </a>
+                    <a href="https://music.163.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://music.163.com/favicon.ico" alt="网易云音乐">
+                            </div>
+                            <p class="nav-name">网易云音乐</p>
+                        </div>
+                    </a>
+                    <a href="https://y.qq.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://y.qq.com/favicon.ico" alt="QQ音乐">
+                            </div>
+                            <p class="nav-name">QQ音乐</p>
+                        </div>
+                    </a>
+                    <a href="https://www.kugou.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.kugou.com/favicon.ico" alt="酷狗音乐">
+                            </div>
+                            <p class="nav-name">酷狗音乐</p>
+                        </div>
+                    </a>
+                    <a href="https://www.douyin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.douyin.com/favicon.ico" alt="抖音">
+                            </div>
+                            <p class="nav-name">抖音</p>
+                        </div>
+                    </a>
+                    <a href="https://www.kuaishou.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.kuaishou.com/favicon.ico" alt="快手">
+                            </div>
+                            <p class="nav-name">快手</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 购物网站 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-shopping-cart"></i>购物网站</h2>
+                <div class="nav-grid">
+                    <a href="https://www.taobao.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.taobao.com/favicon.ico" alt="淘宝">
+                            </div>
+                            <p class="nav-name">淘宝</p>
+                        </div>
+                    </a>
+                    <a href="https://www.tmall.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.tmall.com/favicon.ico" alt="天猫">
+                            </div>
+                            <p class="nav-name">天猫</p>
+                        </div>
+                    </a>
+                    <a href="https://www.jd.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.jd.com/favicon.ico" alt="京东">
+                            </div>
+                            <p class="nav-name">京东</p>
+                        </div>
+                    </a>
+                    <a href="https://www.pinduoduo.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.pinduoduo.com/favicon.ico" alt="拼多多">
+                            </div>
+                            <p class="nav-name">拼多多</p>
+                        </div>
+                    </a>
+                    <a href="https://www.suning.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.suning.com/favicon.ico" alt="苏宁易购">
+                            </div>
+                            <p class="nav-name">苏宁易购</p>
+                        </div>
+                    </a>
+                    <a href="https://www.amazon.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.amazon.cn/favicon.ico" alt="亚马逊">
+                            </div>
+                            <p class="nav-name">亚马逊</p>
+                        </div>
+                    </a>
+                    <a href="https://www.vip.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.vip.com/favicon.ico" alt="唯品会">
+                            </div>
+                            <p class="nav-name">唯品会</p>
+                        </div>
+                    </a>
+                    <a href="https://www.dangdang.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.dangdang.com/favicon.ico" alt="当当">
+                            </div>
+                            <p class="nav-name">当当</p>
+                        </div>
+                    </a>
+                    <a href="https://www.xiaohongshu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.xiaohongshu.com/favicon.ico" alt="小红书">
+                            </div>
+                            <p class="nav-name">小红书</p>
+                        </div>
+                    </a>
+                    <a href="https://www.kaola.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.kaola.com/favicon.ico" alt="考拉海购">
+                            </div>
+                            <p class="nav-name">考拉海购</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 社交媒体 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-comments"></i>社交媒体</h2>
+                <div class="nav-grid">
+                    <a href="https://weibo.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://weibo.com/favicon.ico" alt="微博">
+                            </div>
+                            <p class="nav-name">微博</p>
+                        </div>
+                    </a>
+                    <a href="https://www.zhihu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://static.zhihu.com/heifetz/favicon.ico" alt="知乎">
+                            </div>
+                            <p class="nav-name">知乎</p>
+                        </div>
+                    </a>
+                    <a href="https://www.douban.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.douban.com/favicon.ico" alt="豆瓣">
+                            </div>
+                            <p class="nav-name">豆瓣</p>
+                        </div>
+                    </a>
+                    <a href="https://tieba.baidu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://tieba.baidu.com/favicon.ico" alt="百度贴吧">
+                            </div>
+                            <p class="nav-name">百度贴吧</p>
+                        </div>
+                    </a>
+                    <a href="https://www.xiaohongshu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.xiaohongshu.com/favicon.ico" alt="小红书">
+                            </div>
+                            <p class="nav-name">小红书</p>
+                        </div>
+                    </a>
+                    <a href="https://www.facebook.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.facebook.com/favicon.ico" alt="Facebook">
+                            </div>
+                            <p class="nav-name">Facebook</p>
+                        </div>
+                    </a>
+                    <a href="https://twitter.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://twitter.com/favicon.ico" alt="Twitter">
+                            </div>
+                            <p class="nav-name">Twitter</p>
+                        </div>
+                    </a>
+                    <a href="https://www.instagram.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.instagram.com/favicon.ico" alt="Instagram">
+                            </div>
+                            <p class="nav-name">Instagram</p>
+                        </div>
+                    </a>
+                    <a href="https://www.linkedin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.linkedin.com/favicon.ico" alt="LinkedIn">
+                            </div>
+                            <p class="nav-name">LinkedIn</p>
+                        </div>
+                    </a>
+                    <a href="https://www.reddit.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.reddit.com/favicon.ico" alt="Reddit">
+                            </div>
+                            <p class="nav-name">Reddit</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 教育学习 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-graduation-cap"></i>教育学习</h2>
+                <div class="nav-grid">
+                    <a href="https://www.coursera.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.coursera.org/favicon.ico" alt="Coursera">
+                            </div>
+                            <p class="nav-name">Coursera</p>
+                        </div>
+                    </a>
+                    <a href="https://www.udemy.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.udemy.com/favicon.ico" alt="Udemy">
+                            </div>
+                            <p class="nav-name">Udemy</p>
+                        </div>
+                    </a>
+                    <a href="https://www.edx.org" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.edx.org/favicon.ico" alt="edX">
+                            </div>
+                            <p class="nav-name">edX</p>
+                        </div>
+                    </a>
+                    <a href="https://www.codecademy.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.codecademy.com/favicon.ico" alt="Codecademy">
+                            </div>
+                            <p class="nav-name">Codecademy</p>
+                        </div>
+                    </a>
+                    <a href="https://leetcode.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://leetcode.cn/favicon.ico" alt="力扣">
+                            </div>
+                            <p class="nav-name">力扣</p>
+                        </div>
+                    </a>
+                    <a href="https://www.nowcoder.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.nowcoder.com/favicon.ico" alt="牛客网">
+                            </div>
+                            <p class="nav-name">牛客网</p>
+                        </div>
+                    </a>
+                    <a href="https://www.imooc.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.imooc.com/favicon.ico" alt="慕课网">
+                            </div>
+                            <p class="nav-name">慕课网</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 金融理财 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-money-bill-wave"></i>金融理财</h2>
+                <div class="nav-grid">
+                    <a href="https://www.alipay.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.alipay.com/favicon.ico" alt="支付宝">
+                            </div>
+                            <p class="nav-name">支付宝</p>
+                        </div>
+                    </a>
+                    <a href="https://www.wechatpay.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.wechatpay.com/favicon.ico" alt="微信支付">
+                            </div>
+                            <p class="nav-name">微信支付</p>
+                        </div>
+                    </a>
+                    <a href="https://www.baidu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.baidu.com/favicon.ico" alt="百度理财">
+                            </div>
+                            <p class="nav-name">百度理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.toutiao.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.toutiao.com/favicon.ico" alt="今日头条理财">
+                            </div>
+                            <p class="nav-name">今日头条理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.jd.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.jd.com/favicon.ico" alt="京东理财">
+                            </div>
+                            <p class="nav-name">京东理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.pinduoduo.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.pinduoduo.com/favicon.ico" alt="拼多多理财">
+                            </div>
+                            <p class="nav-name">拼多多理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.suning.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.suning.com/favicon.ico" alt="苏宁理财">
+                            </div>
+                            <p class="nav-name">苏宁理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.amazon.cn" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.amazon.cn/favicon.ico" alt="亚马逊理财">
+                            </div>
+                            <p class="nav-name">亚马逊理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.vip.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.vip.com/favicon.ico" alt="唯品会理财">
+                            </div>
+                            <p class="nav-name">唯品会理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.dangdang.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.dangdang.com/favicon.ico" alt="当当理财">
+                            </div>
+                            <p class="nav-name">当当理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.xiaohongshu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.xiaohongshu.com/favicon.ico" alt="小红书理财">
+                            </div>
+                            <p class="nav-name">小红书理财</p>
+                        </div>
+                    </a>
+                    <a href="https://www.kaola.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.kaola.com/favicon.ico" alt="考拉理财">
+                            </div>
+                            <p class="nav-name">考拉理财</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 游戏娱乐 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-gamepad"></i>游戏娱乐</h2>
+                <div class="nav-grid">
+                    <a href="https://www.taptap.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.taptap.com/favicon.ico" alt="TapTap">
+                            </div>
+                            <p class="nav-name">TapTap</p>
+                        </div>
+                    </a>
+                    <a href="https://www.bilibili.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.bilibili.com/favicon.ico" alt="哔哩哔哩">
+                            </div>
+                            <p class="nav-name">哔哩哔哩</p>
+                        </div>
+                    </a>
+                    <a href="https://www.youku.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.youku.com/favicon.ico" alt="优酷">
+                            </div>
+                            <p class="nav-name">优酷</p>
+                        </div>
+                    </a>
+                    <a href="https://www.douyin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.douyin.com/favicon.ico" alt="抖音">
+                            </div>
+                            <p class="nav-name">抖音</p>
+                        </div>
+                    </a>
+                    <a href="https://www.kuaishou.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.kuaishou.com/favicon.ico" alt="快手">
+                            </div>
+                            <p class="nav-name">快手</p>
+                        </div>
+                    </a>
+                    <a href="https://www.zhihu.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.zhihu.com/favicon.ico" alt="知乎">
+                            </div>
+                            <p class="nav-name">知乎</p>
+                        </div>
+                    </a>
+                    <a href="https://www.douban.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.douban.com/favicon.ico" alt="豆瓣">
+                            </div>
+                            <p class="nav-name">豆瓣</p>
+                        </div>
+                    </a>
+                    <a href="https://www.bilibili.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.bilibili.com/favicon.ico" alt="哔哩哔哩">
+                            </div>
+                            <p class="nav-name">哔哩哔哩</p>
+                        </div>
+                    </a>
+                    <a href="https://www.youku.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.youku.com/favicon.ico" alt="优酷">
+                            </div>
+                            <p class="nav-name">优酷</p>
+                        </div>
+                    </a>
+                    <a href="https://www.youtube.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.youtube.com/favicon.ico" alt="YouTube">
+                            </div>
+                            <p class="nav-name">YouTube</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 旅游出行 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-plane"></i>旅游出行</h2>
+                <div class="nav-grid">
+                    <a href="https://www.ctrip.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ctrip.com/favicon.ico" alt="携程">
+                            </div>
+                            <p class="nav-name">携程</p>
+                        </div>
+                    </a>
+                    <a href="https://www.qunar.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.qunar.com/favicon.ico" alt="去哪儿">
+                            </div>
+                            <p class="nav-name">去哪儿</p>
+                        </div>
+                    </a>
+                    <a href="https://www.ctrip.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.ctrip.com/favicon.ico" alt="携程">
+                            </div>
+                            <p class="nav-name">携程</p>
+                        </div>
+                    </a>
+                    <a href="https://www.elong.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.elong.com/favicon.ico" alt="艺龙">
+                            </div>
+                            <p class="nav-name">艺龙</p>
+                        </div>
+                    </a>
+                    <a href="https://www.meituan.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.meituan.com/favicon.ico" alt="美团">
+                            </div>
+                            <p class="nav-name">美团</p>
+                        </div>
+                    </a>
+                    <a href="https://www.didi.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.didi.com/favicon.ico" alt="滴滴出行">
+                            </div>
+                            <p class="nav-name">滴滴出行</p>
+                        </div>
+                    </a>
+                    <a href="https://www.58.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.58.com/favicon.ico" alt="58同城">
+                            </div>
+                            <p class="nav-name">58同城</p>
+                        </div>
+                    </a>
+                    <a href="https://www.lianjia.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.lianjia.com/favicon.ico" alt="链家">
+                            </div>
+                            <p class="nav-name">链家</p>
+                        </div>
+                    </a>
+                    <a href="https://www.guahao.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.guahao.com/favicon.ico" alt="微医">
+                            </div>
+                            <p class="nav-name">微医</p>
+                        </div>
+                    </a>
+                    <a href="https://www.dazhongdianping.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.dazhongdianping.com/favicon.ico" alt="大众点评">
+                            </div>
+                            <p class="nav-name">大众点评</p>
+                        </div>
+                    </a>
+                    <a href="https://www.amap.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.amap.com/favicon.ico" alt="高德地图">
+                            </div>
+                            <p class="nav-name">高德地图</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 求职招聘 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-briefcase"></i>求职招聘</h2>
+                <div class="nav-grid">
+                    <a href="https://www.zhaopin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.zhaopin.com/favicon.ico" alt="智联招聘">
+                            </div>
+                            <p class="nav-name">智联招聘</p>
+                        </div>
+                    </a>
+                    <a href="https://www.lagou.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.lagou.com/favicon.ico" alt="拉勾网">
+                            </div>
+                            <p class="nav-name">拉勾网</p>
+                        </div>
+                    </a>
+                    <a href="https://www.zhipin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.zhipin.com/favicon.ico" alt="智联招聘">
+                            </div>
+                            <p class="nav-name">智联招聘</p>
+                        </div>
+                    </a>
+                    <a href="https://www.liepin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.liepin.com/favicon.ico" alt="猎聘网">
+                            </div>
+                            <p class="nav-name">猎聘网</p>
+                        </div>
+                    </a>
+                    <a href="https://www.bosszhipin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.bosszhipin.com/favicon.ico" alt="BOSS直聘">
+                            </div>
+                            <p class="nav-name">BOSS直聘</p>
+                        </div>
+                    </a>
+                    <a href="https://www.51job.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.51job.com/favicon.ico" alt="前程无忧">
+                            </div>
+                            <p class="nav-name">前程无忧</p>
+                        </div>
+                    </a>
+                    <a href="https://www.zhaopin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.zhaopin.com/favicon.ico" alt="智联招聘">
+                            </div>
+                            <p class="nav-name">智联招聘</p>
+                        </div>
+                    </a>
+                    <a href="https://www.lagou.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.lagou.com/favicon.ico" alt="拉勾网">
+                            </div>
+                            <p class="nav-name">拉勾网</p>
+                        </div>
+                    </a>
+                    <a href="https://www.zhipin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.zhipin.com/favicon.ico" alt="智联招聘">
+                            </div>
+                            <p class="nav-name">智联招聘</p>
+                        </div>
+                    </a>
+                    <a href="https://www.liepin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.liepin.com/favicon.ico" alt="猎聘网">
+                            </div>
+                            <p class="nav-name">猎聘网</p>
+                        </div>
+                    </a>
+                    <a href="https://www.bosszhipin.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.bosszhipin.com/favicon.ico" alt="BOSS直聘">
+                            </div>
+                            <p class="nav-name">BOSS直聘</p>
+                        </div>
+                    </a>
+                    <a href="https://www.51job.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.51job.com/favicon.ico" alt="前程无忧">
+                            </div>
+                            <p class="nav-name">前程无忧</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 汽车服务 -->
+            <div class="nav-category">
+                <h2 class="category-title"><i class="fas fa-car"></i>汽车服务</h2>
+                <div class="nav-grid">
+                    <a href="https://www.autohome.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.autohome.com/favicon.ico" alt="汽车之家">
+                            </div>
+                            <p class="nav-name">汽车之家</p>
+                        </div>
+                    </a>
+                    <a href="https://www.che168.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.che168.com/favicon.ico" alt="汽车之家">
+                            </div>
+                            <p class="nav-name">汽车之家</p>
+                        </div>
+                    </a>
+                    <a href="https://www.autohome.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.autohome.com/favicon.ico" alt="汽车之家">
+                            </div>
+                            <p class="nav-name">汽车之家</p>
+                        </div>
+                    </a>
+                    <a href="https://www.che168.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.che168.com/favicon.ico" alt="汽车之家">
+                            </div>
+                            <p class="nav-name">汽车之家</p>
+                        </div>
+                    </a>
+                    <a href="https://www.didi.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.didi.com/favicon.ico" alt="滴滴出行">
+                            </div>
+                            <p class="nav-name">滴滴出行</p>
+                        </div>
+                    </a>
+                    <a href="https://www.58.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.58.com/favicon.ico" alt="58同城">
+                            </div>
+                            <p class="nav-name">58同城</p>
+                        </div>
+                    </a>
+                    <a href="https://www.lianjia.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.lianjia.com/favicon.ico" alt="链家">
+                            </div>
+                            <p class="nav-name">链家</p>
+                        </div>
+                    </a>
+                    <a href="https://www.guahao.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.guahao.com/favicon.ico" alt="微医">
+                            </div>
+                            <p class="nav-name">微医</p>
+                        </div>
+                    </a>
+                    <a href="https://www.dazhongdianping.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.dazhongdianping.com/favicon.ico" alt="大众点评">
+                            </div>
+                            <p class="nav-name">大众点评</p>
+                        </div>
+                    </a>
+                    <a href="https://www.amap.com" class="nav-link" target="_blank">
+                        <div class="nav-item">
+                            <div class="nav-icon">
+                                <img src="https://www.amap.com/favicon.ico" alt="高德地图">
+                            </div>
+                            <p class="nav-name">高德地图</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function searchSites(query) {
+            if (!query) {
+                document.querySelectorAll('.nav-category').forEach(category => {
+                    category.style.display = 'block';
+                });
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.style.display = 'block';
+                });
+                return;
+            }
+
+            query = query.toLowerCase().trim();
+            
+            document.querySelectorAll('.nav-category').forEach(category => {
+                let hasMatch = false;
+                const items = category.querySelectorAll('.nav-item');
+                
+                items.forEach(item => {
+                    const name = item.querySelector('.nav-name').textContent;
+                    // 获取不同形式的文本用于匹配
+                    const normalizedName = name.toLowerCase();
+                    const pinyinName = pinyinPro.pinyin(name, { toneType: 'none', type: 'array' }).join('');
+                    const pinyinFirst = pinyinPro.pinyin(name, { pattern: 'first', toneType: 'none', type: 'array' }).join('');
+                    
+                    // 移除所有空格后的文本
+                    const noSpaceName = normalizedName.replace(/\s+/g, '');
+                    const noSpaceQuery = query.replace(/\s+/g, '');
+                    
+                    // 数字和字母的混合文本
+                    const alphaNumeric = normalizedName.replace(/[^a-z0-9]/g, '');
+                    const queryAlphaNumeric = noSpaceQuery.replace(/[^a-z0-9]/g, '');
+                    
+                    // 检查各种匹配可能：
+                    // 1. 原文匹配（包含空格和不包含空格）
+                    // 2. 拼音全拼匹配
+                    // 3. 拼音首字母匹配
+                    // 4. 数字和字母混合匹配
+                    if (normalizedName.includes(query) || 
+                        noSpaceName.includes(noSpaceQuery) ||
+                        pinyinName.toLowerCase().includes(query) || 
+                        pinyinFirst.toLowerCase().includes(query) ||
+                        alphaNumeric.includes(queryAlphaNumeric)) {
+                        item.style.display = 'block';
+                        hasMatch = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                category.style.display = hasMatch ? 'block' : 'none';
+            });
+        }
+
+        // 添加输入防抖
+        let searchTimeout;
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchSites(e.target.value);
+            }, 300);
+        });
+    </script>
+</body>
+</html> 

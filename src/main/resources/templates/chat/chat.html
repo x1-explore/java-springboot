@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${partner.username + ' - 聊天'}">聊天</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 1rem;
+            height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background: white;
+            border-radius: 15px 15px 0 0;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+        }
+        
+        .chat-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            background: white;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 15px;
+            position: relative;
+        }
+        
+        .message.sent {
+            align-self: flex-end;
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.received {
+            align-self: flex-start;
+            background: #f1f1f1;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 0.25rem;
+        }
+        
+        .chat-input {
+            background: white;
+            border-radius: 0 0 15px 15px;
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .message-input {
+            flex: 1;
+            border: 2px solid #eee;
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .message-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+        
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn:hover {
+            background: #0056b3;
+            transform: scale(1.1);
+        }
+        
+        .back-btn {
+            color: #666;
+            text-decoration: none;
+            margin-right: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <a href="/chat" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <img th:src="${partner.avatar}" 
+                 th:alt="${partner.username}" 
+                 class="chat-avatar">
+            <div class="chat-name" th:text="${partner.username}">用户名</div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div th:each="message : ${chatHistory}" 
+                 th:class="${message.sender.username == #authentication.name ? 'message sent' : 'message received'}">
+                <div th:text="${message.content}">消息内容</div>
+                <div class="message-time" th:text="${#temporals.format(message.timestamp, 'HH:mm')}">时间</div>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" 
+                   class="form-control message-input" 
+                   id="messageInput" 
+                   placeholder="输入消息...">
+            <button class="send-btn" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/stomp.js/2.3.4/stomp.min.js"></script>
+    <script th:inline="javascript">
+        const stompClient = new StompJs.Client({
+            brokerURL: 'ws://' + window.location.host + '/ws',
+            connectHeaders: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content')
+            },
+            debug: function (str) {
+                console.log(str);
+            },
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000
+        });
+
+        stompClient.onConnect = function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/user/queue/messages', function (message) {
+                const messageData = JSON.parse(message.body);
+                displayMessage(messageData);
+            });
+        };
+
+        stompClient.onStompError = function (frame) {
+            console.log('Broker reported error: ' + frame.headers['message']);
+            console.log('Additional details: ' + frame.body);
+        };
+
+        stompClient.activate();
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+            
+            if (content) {
+                const message = {
+                    content: content,
+                    receiver: {
+                        username: /*[[${partner.username}]]*/ ''
+                    },
+                    type: 'CHAT'
+                };
+                
+                stompClient.publish({
+                    destination: '/app/chat.send',
+                    body: JSON.stringify(message)
+                });
+                
+                messageInput.value = '';
+            }
+        }
+
+        function displayMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = message.sender.username === /*[[${#authentication.name}]]*/ '' ? 'message sent' : 'message received';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.textContent = message.content;
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date(message.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timeDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('messageInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 页面加载完成后滚动到底部
+        window.addEventListener('load', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    </script>
+</body>
+</html> 

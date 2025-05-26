@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天列表 - 系统管理平台</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        
+        .chat-list {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+        
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .chat-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+        }
+        
+        .chat-info {
+            flex: 1;
+        }
+        
+        .chat-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+        
+        .chat-status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .new-chat-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .new-chat-btn:hover {
+            transform: scale(1.1);
+            background: #0056b3;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-list">
+            <h2 class="mb-4">聊天列表</h2>
+            
+            <div th:if="${chatPartners != null && !chatPartners.isEmpty()}">
+                <a th:each="partner : ${chatPartners}" 
+                   th:href="@{'/chat/' + ${partner.username}}"
+                   class="chat-item">
+                    <img th:src="${partner.avatar}" 
+                         th:alt="${partner.username}" 
+                         class="chat-avatar">
+                    <div class="chat-info">
+                        <div class="chat-name" th:text="${partner.username}">用户名</div>
+                        <div class="chat-status">点击开始聊天</div>
+                    </div>
+                </a>
+            </div>
+            
+            <div th:if="${chatPartners == null || chatPartners.isEmpty()}" 
+                 class="text-center py-5">
+                <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                <h4>暂无聊天记录</h4>
+                <p class="text-muted">开始和他人聊天吧！</p>
+            </div>
+        </div>
+        
+        <a href="/users/search" class="new-chat-btn">
+            <i class="fas fa-plus"></i>
+        </a>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

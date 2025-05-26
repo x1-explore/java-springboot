@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>IP地址查询</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .ip-query-container {
+            max-width: 1400px;
+            margin: 40px auto;
+        }
+        .api-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            overflow: hidden;
+        }
+        .api-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 15px 20px;
+        }
+        .api-body {
+            padding: 20px;
+            min-height: 300px;
+        }
+        .ip-info-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        .ip-info-item:last-child {
+            border-bottom: none;
+        }
+        .ip-info-label {
+            font-weight: 600;
+            color: #666;
+            min-width: 100px;
+        }
+        .ip-info-value {
+            color: #333;
+            margin-left: 10px;
+        }
+        .search-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .search-input {
+            border-radius: 8px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .search-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+        .search-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(69, 160, 73, 0.4);
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .api-container {
+            display: flex;
+            gap: 20px;
+        }
+        .api-column {
+            flex: 1;
+        }
+        .initial-message {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ip-query-container">
+        <div class="search-form">
+            <form id="ipQueryForm">
+                <div class="input-group">
+                    <input type="text" id="ipInput" class="form-control search-input" 
+                           placeholder="请输入要查询的IP地址">
+                    <button class="btn search-btn" type="submit">查询</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="api-container">
+            <div class="api-column">
+                <div class="api-card">
+                    <div class="api-header">
+                        <h4 class="mb-0">IP-API.com</h4>
+                    </div>
+                    <div class="api-body" id="api1Result">
+                        <div class="initial-message">正在获取IP信息...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="api-column">
+                <div class="api-card">
+                    <div class="api-header">
+                        <h4 class="mb-0">IPAPI.co</h4>
+                    </div>
+                    <div class="api-body" id="api2Result">
+                        <div class="initial-message">正在获取IP信息...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 获取客户端IP
+        async function getClientIp() {
+            try {
+                // 尝试多个IP查询服务
+                const services = [
+                    'https://api.ipify.org?format=json',
+                    'https://ip.seeip.org/geoip',
+                    'https://ipapi.co/json/'
+                ];
+                
+                for (const service of services) {
+                    try {
+                        const response = await fetch(service);
+                        const data = await response.json();
+                        if (data.ip) {
+                            return data.ip;
+                        }
+                    } catch (e) {
+                        console.log(`服务 ${service} 获取失败，尝试下一个`);
+                    }
+                }
+                return '';
+            } catch (error) {
+                console.error('获取客户端IP失败:', error);
+                return '';
+            }
+        }
+
+        document.getElementById('ipQueryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ip = document.getElementById('ipInput').value;
+            queryIp(ip);
+        });
+
+        function showLoading(containerId) {
+            document.getElementById(containerId).innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+        }
+
+        function queryIp(ip) {
+            // 显示加载动画
+            showLoading('api1Result');
+            showLoading('api2Result');
+
+            // 查询第一个API
+            fetch(`/api/ip-query/api1?ip=${ip}`)
+                .then(response => response.json())
+                .then(data => displayResult(data, 'api1Result'))
+                .catch(error => {
+                    document.getElementById('api1Result').innerHTML = `
+                        <div class="alert alert-danger">
+                            <p>查询失败：${error.message}</p>
+                        </div>
+                    `;
+                });
+
+            // 查询第二个API
+            fetch(`/api/ip-query/api2?ip=${ip}`)
+                .then(response => response.json())
+                .then(data => displayResult(data, 'api2Result'))
+                .catch(error => {
+                    document.getElementById('api2Result').innerHTML = `
+                        <div class="alert alert-danger">
+                            <p>查询失败：${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function displayResult(data, containerId) {
+            const container = document.getElementById(containerId);
+            if (data.status === 'success') {
+                container.innerHTML = `
+                    <div class="ip-info-item">
+                        <span class="ip-info-label">IP地址：</span>
+                        <span class="ip-info-value">${data.query || data.ip}</span>
+                    </div>
+                    <div class="ip-info-item">
+                        <span class="ip-info-label">国家：</span>
+                        <span class="ip-info-value">${data.country}</span>
+                    </div>
+                    <div class="ip-info-item">
+                        <span class="ip-info-label">地区：</span>
+                        <span class="ip-info-value">${data.regionName || data.region}</span>
+                    </div>
+                    <div class="ip-info-item">
+                        <span class="ip-info-label">城市：</span>
+                        <span class="ip-info-value">${data.city}</span>
+                    </div>
+                    <div class="ip-info-item">
+                        <span class="ip-info-label">ISP：</span>
+                        <span class="ip-info-value">${data.isp || data.org}</span>
+                    </div>
+                    <div class="ip-info-item">
+                        <span class="ip-info-label">组织：</span>
+                        <span class="ip-info-value">${data.org || data.isp}</span>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <p>${data.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载完成后获取客户端IP
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const clientIp = await getClientIp();
+                if (clientIp) {
+                    document.getElementById('ipInput').value = clientIp;
+                    queryIp(clientIp);
+                } else {
+                    document.getElementById('api1Result').innerHTML = `
+                        <div class="alert alert-warning">
+                            <p>无法自动获取客户端IP，请手动输入IP地址进行查询</p>
+                        </div>
+                    `;
+                    document.getElementById('api2Result').innerHTML = `
+                        <div class="alert alert-warning">
+                            <p>无法自动获取客户端IP，请手动输入IP地址进行查询</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('获取IP失败:', error);
+                document.getElementById('api1Result').innerHTML = `
+                    <div class="alert alert-warning">
+                        <p>无法自动获取客户端IP，请手动输入IP地址进行查询</p>
+                    </div>
+                `;
+                document.getElementById('api2Result').innerHTML = `
+                    <div class="alert alert-warning">
+                        <p>无法自动获取客户端IP，请手动输入IP地址进行查询</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html> 
