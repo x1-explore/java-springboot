@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 
 @Configuration
 @EnableWebSecurity
@@ -20,8 +21,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth, UserService userService) throws Exception {
+    private UserService userService;
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
     }
 
@@ -30,7 +40,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
             .csrf().disable()
             .authorizeRequests()
-                .antMatchers("/", "/css/**", "/js/**", "/register", "/init", "/login", "/ip-query", "/api/ip-query/**").permitAll()
+                .antMatchers("/", "/css/**", "/js/**", "/register", "/init", "/login", "/ip-query", "/api/ip-query/**", "/guest-login", "/dashboard", "/profile", "/navigation").permitAll()
+                .antMatchers("/users/**", "/api/users/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             .and()
             .formLogin()

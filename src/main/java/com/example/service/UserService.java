@@ -45,6 +45,9 @@ public class UserService implements UserDetailsService {
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
+        
+        // 检查并创建访客账号
+        createGuestUserIfNotFound();
     }
 
     @Override
@@ -158,6 +161,16 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    public User createGuestUser() {
+        User user = new User();
+        user.setUsername("guest");
+        user.setPassword(passwordEncoder.encode("guest"));
+        user.setEmail("guest@guest.com");
+        user.setRole("ROLE_GUEST");
+        user.setAvatar(generateNewAvatar());
+        return user;
+    }
+
     public Optional<User> findByUsername(String username) {
         Optional<User> user = userRepository.findByUsername(username);
         
@@ -197,5 +210,20 @@ public class UserService implements UserDetailsService {
     public List<User> searchUsers(String keyword, User currentUser) {
         return userRepository.findByUsernameContainingOrEmailContainingAndIdNot(
             keyword, keyword, currentUser.getId());
+    }
+
+    private void createGuestUserIfNotFound() {
+        Optional<User> guestUser = userRepository.findByUsername("guest");
+        if (!guestUser.isPresent()) {
+            User user = new User();
+            user.setUsername("guest");
+            // 使用硬编码密码 "guest"，生产环境请修改
+            user.setPassword(passwordEncoder.encode("guest")); 
+            user.setEmail("guest@guest.com");
+            user.setRole("ROLE_GUEST");
+            user.setAvatar(generateNewAvatar()); // 为访客生成头像
+            userRepository.save(user);
+            System.out.println("访客账号 'guest' 已自动创建。");
+        }
     }
 } 

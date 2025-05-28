@@ -40,8 +40,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.10);
+            backdrop-filter: blur(0.5px);
+            -webkit-backdrop-filter: blur(0.5px);
         }
         
         .register-card {
@@ -234,39 +235,48 @@
         const submitBtn = document.getElementById('submitBtn');
         const bgElement = document.querySelector('.dynamic-bg');
 
-        // 获取 Bing 每日图片
-        async function getRandomImage() {
-            try {
-                const response = await fetch('https://api.dujin.org/bing/1920.php');
-                if (!response.ok) {
-                    throw new Error('获取图片失败');
-                }
-                return response.url;
-            } catch (error) {
-                console.error('获取图片失败:', error);
-                return 'https://api.dujin.org/bing/1920.php';
-            }
-        }
+        // 背景图片数组 - 使用多个快速可靠的API
+        const backgroundImages = [
+            'https://api.dujin.org/bing/1920.php',
+            'https://api.dujin.org/bing/1920.php?random=' + Math.random(),
+            'https://api.yimian.xyz/img?type=moe&size=1920x1080',
+            'https://api.yimian.xyz/img?type=moe&size=1920x1080&random=' + Math.random(),
+            'https://api.ixiaowai.cn/gqapi/gqapi.php',
+            'https://api.ixiaowai.cn/gqapi/gqapi.php?random=' + Math.random(),
+            'https://api.ixiaowai.cn/api/api.php',
+            'https://api.ixiaowai.cn/api/api.php?random=' + Math.random(),
+            'https://api.yimian.xyz/img?type=wallpaper&size=1920x1080',
+            'https://api.yimian.xyz/img?type=wallpaper&size=1920x1080&random=' + Math.random()
+        ];
 
-        // 预加载图片
-        function preloadImage(url) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(url);
-                img.onerror = reject;
-                img.src = url;
+        async function preloadImages() {
+            const promises = backgroundImages.map(url => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve(url);
+                    img.onerror = () => resolve(null);
+                    img.src = url;
+                });
             });
+            const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 3000));
+            const results = await Promise.race([
+                Promise.all(promises),
+                timeoutPromise
+            ]);
+            return results ? results.filter(url => url !== null) : [];
         }
 
-        // 初始化背景
         async function initBackground() {
             try {
-                const initialBgUrl = await getRandomImage();
-                await preloadImage(initialBgUrl);
-                bgElement.style.backgroundImage = `url(${initialBgUrl})`;
+                bgElement.style.backgroundImage = `url(${backgroundImages[0]})`;
                 bgElement.classList.add('active');
+                const validUrls = await preloadImages();
+                if (validUrls.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * validUrls.length);
+                    bgElement.style.backgroundImage = `url(${validUrls[randomIndex]})`;
+                }
             } catch (error) {
-                console.error('初始背景加载失败:', error);
+                console.error('背景加载失败:', error);
             }
         }
 

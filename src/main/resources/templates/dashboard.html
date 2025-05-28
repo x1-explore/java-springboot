@@ -86,7 +86,8 @@
                             <i class="fas fa-compass me-1"></i>导航
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <!-- 只有管理员可以看到用户查询链接 -->
+                    <li class="nav-item" th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
                         <a class="nav-link" href="/users/search">
                             <i class="fas fa-users me-1"></i>用户查询
                         </a>
