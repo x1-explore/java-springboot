@@ -68,36 +68,44 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
+    /*
     @PostConstruct
     public void migrateAvatars() {
-        // 获取所有用户
-        List<User> users = userRepository.findAll();
-        boolean hasChanges = false;
+        // 迁移已完成，暂时禁用
+        if (true) return;
         
-        // 检查每个用户的头像URL
+        // 完整保留的原有迁移逻辑
+        if (userRepository.countByAvatarContaining("bottts|pixel-art|identicon") > 0) {
+            return;
+        }
+        
+        List<User> users = userRepository.findAll();
         for (User user : users) {
             String avatar = user.getAvatar();
-            // 如果头像URL不是DiceBear格式，则更新
-            if (avatar != null && !avatar.contains("dicebear.com")) {
+            if (avatar == null || 
+                avatar.contains("boringavatars.com") || 
+                (avatar.contains("dicebear.com") && !avatar.matches(".*(bottts|pixel-art|identicon).*"))) {
                 user.setAvatar(generateNewAvatar());
-                hasChanges = true;
+                userRepository.save(user);
             }
         }
-        
-        // 如果有更改，保存所有用户
-        if (hasChanges) {
-            userRepository.saveAll(users);
-        }
     }
+    */
 
     public String generateNewAvatar() {
-        // 使用 Boring Avatars API 生成头像
-        String randomId = UUID.randomUUID().toString().substring(0, 8);
-        // 可选的样式：marble, beam, pixel, sunset, ring, bauhaus
-        String[] styles = {"marble", "beam", "pixel", "sunset", "ring", "bauhaus"};
-        String randomStyle = styles[new Random().nextInt(styles.length)];
-        return String.format("https://source.boringavatars.com/%s/120/%s?colors=264653,2a9d8f,e9c46a,f4a261,e76f51", 
-            randomStyle, randomId);
+        // 使用多个国内可访问的头像API，随机选择一种
+        String seed = UUID.randomUUID().toString();
+        
+        // 可选的API列表
+        String[] apis = {
+            "https://api.dicebear.com/7.x/bottts/svg?seed=" + seed, // 机器人风格
+            "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + seed, // 像素风格
+            "https://api.dicebear.com/7.x/identicon/svg?seed=" + seed // 抽象风格
+        };
+        
+        // 随机选择一个API
+        Random random = new Random();
+        return apis[random.nextInt(apis.length)];
     }
 
     public String uploadAvatar(MultipartFile file) throws IOException {
@@ -176,7 +184,10 @@ public class UserService implements UserDetailsService {
         
         // 如果用户存在但没有头像，或者头像是DiceBear的，并且数据库中没有自定义头像
         if (user.isPresent() && (user.get().getAvatar() == null || user.get().getAvatar().contains("dicebear.com"))) {
-            user.get().setAvatar(generateNewAvatar());
+            // 修改第184-185行逻辑
+            if (user.isPresent() && user.get().getAvatar() == null) {
+                user.get().setAvatar(generateNewAvatar());
+            }
             userRepository.save(user.get());
         }
         
@@ -225,4 +236,4 @@ public class UserService implements UserDetailsService {
             System.out.println("访客账号 'guest' 已自动创建。");
         }
     }
-} 
+}
