@@ -214,9 +214,8 @@ public class UserService implements UserDetailsService {
 
     private void createGuestUserIfNotFound() {
         Optional<User> guestUser = userRepository.findByUsername("guest");
-        if (!guestUser.isPresent()) {
-            User user = new User();
-            user.setUsername("guest");
+        if (!guestUser.isPresent()) {            User user = new User();
+            user.setUsername("访客");
             // 使用硬编码密码 "guest"，生产环境请修改
             user.setPassword(passwordEncoder.encode("guest")); 
             user.setEmail("guest@guest.com");

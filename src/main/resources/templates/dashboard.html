@@ -92,26 +92,30 @@
                             <i class="fas fa-users me-1"></i>用户查询
                         </a>
                     </li>
-                </ul>
-                <div class="nav-item dropdown">
+                </ul>                <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img th:if="${session.user != null && session.user.avatar != null}" 
-                             th:src="${session.user.avatar}" 
+                        <img th:if="${user != null && user.avatar != null}" 
+                             th:src="${user.avatar}" 
                              alt="用户头像" 
-                             class="user-avatar me-2">
-                        <i th:if="${session.user == null || session.user.avatar == null}" 
-                           class="fas fa-user-circle me-2"></i>
-                        <span th:text="${session.user != null ? session.user.username : '用户'}">用户</span>
+                             class="user-avatar me-2">                        <!-- 根据用户角色显示对应身份 -->
+                        <span th:text="${user != null ? (user.username == 'guest' ? '访客' : user.username) : '访客'}">访客</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li>
+                        <!-- 访客显示注册账号 -->
+                        <li th:if="${user != null && user.role == 'ROLE_GUEST'}">
+                            <a class="dropdown-item" href="/register">
+                                <i class="fas fa-user-plus me-2"></i>注册账号
+                            </a>
+                        </li>
+                        <!-- 管理员和普通用户显示个人信息 -->
+                        <li th:if="${user != null && (user.role == 'ROLE_ADMIN' || user.role == 'ROLE_USER')}">
                             <a class="dropdown-item" href="/profile">
                                 <i class="fas fa-user me-2"></i>个人信息
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <a class="dropdown-item text-danger" href="/logout">
+                            <a class="dropdown-item" href="/logout">
                                 <i class="fas fa-sign-out-alt me-2"></i>退出登录
                             </a>
                         </li>
@@ -134,4 +138,4 @@
 
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
-</html> 
+</html>
