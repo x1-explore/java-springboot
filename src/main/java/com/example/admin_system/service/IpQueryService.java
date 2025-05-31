@@ -15,6 +15,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 
 @Service
+@SuppressWarnings("unchecked")
 public class IpQueryService {
     private static final String API1_URL = "https://ip-api.com/json/";
     private static final String API2_URL = "https://ipapi.co/json/";
